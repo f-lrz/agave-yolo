@@ -1,0 +1,6 @@
+data/
+runs/
+out/
+*.pt
+!yolov8*.pt
+__pycache__/
