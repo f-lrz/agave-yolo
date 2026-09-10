@@ -53,6 +53,23 @@ def vegetation_index(img: np.ndarray, kind: str) -> np.ndarray:
     elif kind == "hsv":          # matiz puro; util quando o solo e esverdeado
         h, s, _ = cv2.split(cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32))
         v = (np.abs(((h - 60) + 90) % 180 - 90) < 30).astype(np.float32) * (s / 255.0)
+    elif kind == "lab_a":
+        # Eixo verde-vermelho do CIELAB. Separa VERDE de AMARELO, coisa que o
+        # ExG nao faz: capim seco tem G > R e passa como vegetacao no ExG, mas
+        # fica do lado amarelo no a*. E o indice para fundo com mato seco.
+        lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB).astype(np.float32)
+        v = 128.0 - lab[:, :, 1]
+    elif kind == "verde_escuro":
+        # Agave: verde saturado E escuro. Capim seco: pouco saturado e claro.
+        # Multiplicar as tres condicoes derruba o capim mesmo quando ele e verde.
+        lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB).astype(np.float32)
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
+        verde = np.clip(128.0 - lab[:, :, 1], 0, None) / 40.0
+        sat = hsv[:, :, 1] / 255.0
+        escuro = 1.0 - hsv[:, :, 2] / 255.0
+        v = verde * sat * (0.4 + 0.6 * escuro)
+    elif kind == "gli":          # Green Leaf Index, normalizado
+        v = (2 * G - R - B) / (2 * G + R + B + 1e-6)
     else:
         raise ValueError(f"indice desconhecido: {kind}")
     v = np.nan_to_num(v)
@@ -92,13 +109,18 @@ def calibrate_plant_px(mask: np.ndarray, n_iter: int = 3) -> float:
     d = estimate_plant_px(mask)
     if d <= 0:
         return 0.0
+    # Teto de sanidade. Num plantio denso a mascara vira um lencol continuo, o
+    # fechamento funde tudo, e a estimativa dispara — ja vi ela chegar a 6x o
+    # tamanho real e produzir 13 caixas na imagem inteira. Nenhuma planta ocupa
+    # 1/6 do lado da foto.
+    teto = min(mask.shape[:2]) / 6.0
     for _ in range(n_iter):
         fechado = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, _ellipse(d * 0.22))
         novo = estimate_plant_px(fechado)
         if novo <= d * 1.03:          # estabilizou
             break
-        d = min(novo, d * 2.0)        # trava crescimento explosivo por fusao
-    return d
+        d = min(novo, d * 2.0, teto)  # trava crescimento explosivo por fusao
+    return min(d, teto)
 
 
 # --------------------------------------------------------------------------
@@ -111,7 +133,8 @@ def _ellipse(k: int) -> np.ndarray:
 
 
 def segment(img: np.ndarray, index: str, thresh: int | None, plant_px: float | None,
-            thresh_scale: float = 0.40) -> tuple[np.ndarray, np.ndarray, float]:
+            thresh_scale: float = 0.40, abertura: float = 0.04,
+            fechamento: float = 0.22) -> tuple[np.ndarray, np.ndarray, float]:
     """-> (mapa do indice, mascara binaria limpa, plant_px usado)
 
     Sobre o limiar: o Otsu puro e agressivo DEMAIS para este problema. Ele
@@ -124,7 +147,9 @@ def segment(img: np.ndarray, index: str, thresh: int | None, plant_px: float | N
 
     if thresh is None:
         otsu, _ = cv2.threshold(veg, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        thresh = otsu * thresh_scale
+        # thresh_scale > 1 e legitimo: em plantio denso o Otsu ainda deixa solo
+        # entrar. O clamp evita que um valor alto zere a mascara inteira.
+        thresh = min(otsu * thresh_scale, 254.0)
     _, mask = cv2.threshold(veg, float(thresh), 255, cv2.THRESH_BINARY)
 
     if not plant_px:
@@ -133,11 +158,20 @@ def segment(img: np.ndarray, index: str, thresh: int | None, plant_px: float | N
         if plant_px <= 0:
             plant_px = min(img.shape[:2]) / 30.0    # chute de ultimo caso
 
-    # abre para matar ruido de pixel solto; fecha para unir as folhas da roseta
-    # (a roseta tem VAOS entre as folhas — sem o fechamento cada folha vira um
-    # objeto separado e voce recebe 20 caixas por planta)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, _ellipse(plant_px * 0.04))
-    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, _ellipse(plant_px * 0.22))
+    # Os dois parametros que decidem o sucesso quando o fundo NAO e solo limpo:
+    #
+    #   abertura   mata o ruido de fundo (capim, mato) antes de qualquer colagem.
+    #              Precisa ser maior que a espessura do ruido e menor que a
+    #              espessura da folha do agave.
+    #   fechamento une as folhas da roseta, que tem vao entre elas. Mas cola
+    #              TUDO que estiver a essa distancia: se sobrou ruido de fundo,
+    #              um fechamento grande transforma a imagem inteira num lencol
+    #              continuo e a fronteira das plantas desaparece.
+    #
+    # Com fundo de terra os padroes (0.04 / 0.22) funcionam. Com capim no chao,
+    # quase sempre e preciso abrir mais e fechar menos.
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, _ellipse(plant_px * abertura))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, _ellipse(plant_px * fechamento))
     return veg, mask, plant_px
 
 
@@ -189,19 +223,44 @@ def split_touching(mask: np.ndarray, plant_px: float, max_radius_ratio: float = 
 def boxes_from_labels(markers: np.ndarray, plant_px: float, min_area_ratio: float,
                       max_area_ratio: float, min_solidity: float, max_aspect: float,
                       classe: int = 0) -> tuple[np.ndarray, dict[str, int]]:
-    """Cada regiao vira uma caixa, se passar nos filtros de forma."""
+    """Cada regiao vira uma caixa, se passar nos filtros de forma.
+
+    Area e caixa saem de UMA varredura da imagem, e nao de um `markers == lab`
+    por regiao. A versao ingenua era O(regioes x pixels): com 550 plantas numa
+    imagem de 16 MP dava 9 bilhoes de comparacoes, ~100 s por imagem. O contorno
+    (para a solidez) roda so dentro da caixa da regiao, que e minuscula.
+    """
     nominal = np.pi / 4 * plant_px ** 2
     lo, hi = min_area_ratio * nominal, max_area_ratio * nominal
     boxes: list[list[float]] = []
     rej = {"area": 0, "solidez": 0, "alongado": 0}
 
-    for lab in range(1, int(markers.max()) + 1):
-        comp = (markers == lab).astype(np.uint8)
-        area = int(comp.sum())
+    ys, xs = np.nonzero(markers)
+    if len(ys) == 0:
+        return np.zeros((0, 5)), rej
+
+    labs = markers[ys, xs]
+    ordem = np.argsort(labs, kind="stable")
+    labs, xs, ys = labs[ordem], xs[ordem], ys[ordem]
+    n = int(labs[-1]) + 1
+    inicio = np.searchsorted(labs, np.arange(n + 1))
+
+    for lab in range(1, n):
+        a, b = inicio[lab], inicio[lab + 1]
+        area = b - a
+        if area == 0:
+            continue
         if area < lo or area > hi:
             rej["area"] += 1
             continue
-        cnts, _ = cv2.findContours(comp, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        bx1, bx2 = int(xs[a:b].min()), int(xs[a:b].max())
+        by1, by2 = int(ys[a:b].min()), int(ys[a:b].max())
+        w, h = bx2 - bx1 + 1, by2 - by1 + 1
+        if max(w, h) / max(min(w, h), 1) > max_aspect:
+            rej["alongado"] += 1
+            continue
+        sub = (markers[by1:by2 + 1, bx1:bx2 + 1] == lab).astype(np.uint8)
+        cnts, _ = cv2.findContours(sub, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if not cnts:
             continue
         c = max(cnts, key=cv2.contourArea)
@@ -210,24 +269,41 @@ def boxes_from_labels(markers: np.ndarray, plant_px: float, min_area_ratio: floa
         if hull > 0 and cv2.contourArea(c) / hull < min_solidity:
             rej["solidez"] += 1
             continue
-        x, y, w, h = cv2.boundingRect(c)
-        if max(w, h) / max(min(w, h), 1) > max_aspect:
-            rej["alongado"] += 1
-            continue
-        boxes.append([classe, x, y, x + w, y + h])
+        boxes.append([classe, bx1, by1, bx2 + 1, by2 + 1])
 
     return np.asarray(boxes, dtype=np.float64).reshape(-1, 5), rej
 
 
 def detect(img: np.ndarray, args) -> tuple[np.ndarray, dict]:
-    veg, mask, plant_px = segment(img, args.index, args.thresh, args.plant_px,
-                                  args.thresh_scale)
+    """Detecta na imagem reduzida e devolve as caixas na escala ORIGINAL.
+
+    Segmentar em 5472 px uma planta de 300 px e desperdicio: nada aqui depende
+    de detalhe fino, e o custo da morfologia cresce com o tamanho do kernel, que
+    e proporcional ao tamanho da planta. Reduzindo para ~2000 px de lado maior,
+    o fechamento cai de 0.42 s para 0.01 s sem perder nenhuma planta.
+    """
+    h0, w0 = img.shape[:2]
+    max_lado = getattr(args, "max_lado", 2000) or 0
+    esc = 1.0
+    trab = img
+    if max_lado and max(h0, w0) > max_lado:
+        esc = max_lado / max(h0, w0)
+        trab = cv2.resize(img, (max(int(w0 * esc), 1), max(int(h0 * esc), 1)),
+                          interpolation=cv2.INTER_AREA)
+
+    ppx = args.plant_px * esc if args.plant_px else None
+    veg, mask, plant_px = segment(trab, args.index, args.thresh, ppx, args.thresh_scale,
+                                  getattr(args, "abertura", 0.04),
+                                  getattr(args, "fechamento", 0.22))
     markers, dist = split_touching(mask, plant_px, args.max_radius, args.peak_sep)
     boxes, rej = boxes_from_labels(markers, plant_px, args.min_area, args.max_area,
                                    args.min_solidity, args.max_aspect, args.classe)
-    return boxes, {"plant_px": plant_px, "veg": veg, "mask": mask, "dist": dist,
-                   "markers": markers, "rejeitados": rej,
-                   "cobertura": float((mask > 0).mean())}
+    if esc != 1.0 and len(boxes):
+        boxes[:, 1:5] /= esc                  # de volta para a imagem original
+
+    return boxes, {"plant_px": plant_px / esc, "veg": veg, "mask": mask, "dist": dist,
+                   "markers": markers, "rejeitados": rej, "escala": esc,
+                   "trabalho": trab, "cobertura": float((mask > 0).mean())}
 
 
 # --------------------------------------------------------------------------
@@ -272,8 +348,9 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="propostas de agave sem treinar modelo")
     ap.add_argument("--images", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
-    ap.add_argument("--index", default="exg", choices=["exg", "exgr", "vari", "hsv"],
-                    help="exg e o padrao; exgr se o solo for muito avermelhado")
+    ap.add_argument("--index", default="exg", choices=["exg", "exgr", "vari", "hsv", "lab_a", "verde_escuro", "gli"],
+                    help="exg para solo nu; lab_a ou verde_escuro quando o "
+                         "fundo tem capim/mato (rode tools/escolher_indice.py)")
     ap.add_argument("--thresh", type=int, default=None,
                     help="limiar fixo 0-255; o padrao e Otsu automatico")
     ap.add_argument("--thresh-scale", type=float, default=0.40,
@@ -293,6 +370,16 @@ def main() -> None:
     ap.add_argument("--max-radius", type=float, default=0.7,
                     help="raio maximo de uma planta, como fracao de plant_px; "
                          "limita ate onde uma regiao pode crescer a partir do centro")
+    ap.add_argument("--abertura", type=float, default=0.04,
+                    help="raio da abertura, em fracao de plant_px. SUBA quando o "
+                         "fundo tem capim/mato: mata o ruido antes que ele grude")
+    ap.add_argument("--fechamento", type=float, default=0.22,
+                    help="raio do fechamento, em fracao de plant_px. BAIXE quando a "
+                         "mascara vira um lencol continuo: e ele que cola tudo")
+    ap.add_argument("--max-lado", type=int, default=2000,
+                    help="reduz a imagem para no maximo este lado antes de segmentar "
+                         "(as caixas voltam para a escala original). 0 = nao reduzir. "
+                         "Deixe a planta com ~80-150px na imagem reduzida")
     ap.add_argument("--classe", type=int, default=0,
                     help="id de classe escrito nos .txt. Se o seu projeto de "
                          "anotacao usa 0=doente e 1=sadia, use --classe 1: quase "
@@ -350,10 +437,16 @@ def main() -> None:
 
     cob = float(np.mean(coberturas)) if coberturas else 0.0
     print(f"vegetacao ocupa {cob * 100:.1f}% da imagem")
-    if cob > 0.35:
+    if cob > 0.70:
         print("  !! ALTO DEMAIS. O limiar inundou a mascara: o solo entrou como")
         print("     vegetacao e as plantas viraram um borrao so. Suba --thresh-scale")
-        print("     (tente 0.5, 0.6) ate isso cair para algo entre 3% e 25%.")
+        print("     (tente 0.5, 0.6).")
+    elif cob > 0.35:
+        print("  ?  Cobertura alta. Pode ser mascara inundada, ou pode ser um")
+        print("     plantio denso de verdade — este numero sozinho nao distingue.")
+        print("     Se voce tem imagens rotuladas, meca em vez de adivinhar:")
+        print("       python tools/varrer_parametros.py --param thresh_scale "
+              "--valores 0.3 0.4 0.55 0.7")
     elif cob < 0.005:
         print("  !! BAIXO DEMAIS. Quase nada passou no limiar. Baixe --thresh-scale,")
         print("     ou troque --index (exgr se o solo for avermelhado).")
