@@ -76,14 +76,28 @@ def main() -> None:
         flag = "OK  " if eff >= args.min_px else "RUIM"
         print(f"  tile={t:<5} -> objeto p25 chega com {eff:6.1f} px na rede   [{flag}]")
 
-    choices = [t for t in (512, 640, 768, 1024, 1280, 1536, 2048)
-               if small * args.imgsz / t >= args.min_px]
+    # Segunda restricao, e ela manda: o tile precisa ser VARIAS vezes o tamanho
+    # da planta. Com tile pouco maior que a planta, quase toda instancia encosta
+    # na borda e sai cortada, e o modelo nunca ve a planta inteira com contexto.
+    # Abaixo de ~3x isso degrada rapido; 4x a 8x e a faixa saudavel.
+    grande = float(np.percentile(arr, 75))
+    minimo_ctx = 4 * grande
+    print(f"\n  Contexto: a planta grande (p75) tem {grande:.0f}px, entao o tile")
+    print(f"  precisa de pelo menos {minimo_ctx:.0f}px para nao cortar tudo na borda.")
+
+    todos = (512, 640, 768, 1024, 1280, 1536, 2048, 2560)
+    choices = [t for t in todos
+               if small * args.imgsz / t >= args.min_px and t >= minimo_ctx]
     if choices:
-        print(f"\n  >> Muitas imagens rotuladas: --tile {max(choices)} "
-              f"(menos tiles, treino mais rapido).")
-        print(f"  >> POUCAS imagens rotuladas: --tile {min(choices)} "
-              f"(cada imagem vira mais tiles = mais amostras de treino).")
-        print(f"     Com {len(per_image)} imagens, va no menor.")
+        print(f"\n  >> Use --tile {min(choices)}.")
+        print(f"     (o menor que satisfaz as DUAS restricoes: objeto grande o")
+        print(f"     bastante na rede, e tile grande o bastante para conter a")
+        print(f"     planta inteira com folga)")
+        cortados = [t for t in todos
+                    if small * args.imgsz / t >= args.min_px and t < minimo_ctx]
+        if cortados:
+            print(f"     Nao use {cortados}: passam no teste de tamanho mas cortam")
+            print(f"     as plantas na borda.")
     else:
         print(f"\n  >> Nem tile=512 resolve. Os agaves estao pequenos demais ({small:.0f}px). "
               f"Voe mais baixo, ou aumente o imgsz do treino.")
