@@ -4,3 +4,4 @@ out/
 *.pt
 !yolov8*.pt
 __pycache__/
+*.zip
