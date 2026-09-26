@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 1
+names: ['sadia']
+
+roboflow:
+  workspace: filipe-alves-uwcqe
+  project: lote4-p7nhf
+  version: dataset
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/filipe-alves-uwcqe/lote4-p7nhf/dataset/dataset
