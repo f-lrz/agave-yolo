@@ -1,0 +1,2 @@
+Coloque aqui as fotos que quiser testar (JPG/PNG, originais do drone).
+Os arquivos nesta pasta NAO sao modificados pelo testar.py.
