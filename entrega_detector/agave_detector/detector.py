@@ -50,11 +50,26 @@ LARGURA_MINIMA_ESPERADA = 3000
 
 Imagem = Union[str, Path, bytes, bytearray, np.ndarray]
 
-# BGR (e OpenCV, nao RGB). Preto por padrao: verde se confunde com a propria
-# planta na foto.
+# BGR (e OpenCV, nao RGB).
 PRETO = (0, 0, 0)
+VERMELHO = (0, 0, 255)
 MAGENTA = (255, 0, 255)
 CIANO = (255, 255, 0)
+AMARELO = (0, 255, 255)
+BRANCO = (255, 255, 255)
+VERDE = (0, 200, 0)
+
+# Para escolher por nome (ex.: variavel de ambiente, parametro de query).
+# Evite VERDE: confunde com a propria planta na foto.
+CORES = {
+    "preto": PRETO,
+    "vermelho": VERMELHO,
+    "magenta": MAGENTA,
+    "ciano": CIANO,
+    "amarelo": AMARELO,
+    "branco": BRANCO,
+    "verde": VERDE,
+}
 
 
 def ler_imagem(imagem: Imagem) -> np.ndarray:
