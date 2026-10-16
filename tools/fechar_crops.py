@@ -1,0 +1,149 @@
+"""ETAPA 2 — fecha a triagem e monta o dataset de treino do classificador.
+
+Roda depois que voce arrastou as doentes para data/crops/doente/.
+O que sobrou em _classificar/ e tratado como sadia.
+
+    python tools/fechar_crops.py --crops data/crops
+    python tools/fechar_crops.py --crops data/crops --simular   # so relatorio
+
+O split treino/validacao e feito POR IMAGEM DE ORIGEM, nunca por recorte.
+Recortes da mesma foto compartilham iluminacao, altura de voo e terreno — se
+voce embaralhar recortes, a acuracia fica linda e o modelo nao generaliza. E a
+mesma licao do make_tiles.py na etapa 1.
+
+Alem de montar as pastas, ele diz se ha exemplos suficientes para treinar. E a
+pergunta que importa nesta etapa: com desbalanceamento extremo, um modelo que
+responde 'sadia' sempre acerta 99,5% e nao serve para nada.
+"""
+
+from __future__ import annotations
+
+import argparse
+import random
+import shutil
+from collections import Counter
+from pathlib import Path
+
+OK, AVISO, ERRO = "  ok ", "  !! ", "  XX "
+EXT = {".jpg", ".jpeg", ".png"}
+
+# Minimos para o treino fazer sentido. Nao sao regras universais — sao o ponto
+# a partir do qual um classificador binario com transfer learning costuma sair
+# do chute em dataset pequeno e desbalanceado.
+MIN_DOENTE_TREINO = 60
+MIN_DOENTE_VAL = 15
+
+
+def stem_origem(nome: str) -> str:
+    """'0042_DJI_0991_jpg.rf.abc__0137.jpg' -> 'DJI_0991_jpg.rf.abc'.
+
+    Remove o prefixo do ranking (digitos + '_') e o sufixo '__<indice>'.
+    """
+    base = Path(nome).stem
+    if "__" in base:
+        base = base.rsplit("__", 1)[0]
+    partes = base.split("_", 1)
+    if len(partes) == 2 and partes[0].isdigit():
+        base = partes[1]
+    return base
+
+
+def listar(pasta: Path) -> list[Path]:
+    if not pasta.exists():
+        return []
+    return sorted(p for p in pasta.iterdir() if p.suffix.lower() in EXT)
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--crops", type=Path, required=True,
+                    help="pasta gerada pelo make_crops.py")
+    ap.add_argument("--val-frac", type=float, default=0.2)
+    ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--simular", action="store_true",
+                    help="mostra o relatorio sem criar as pastas de treino")
+    args = ap.parse_args()
+
+    doentes = listar(args.crops / "doente")
+    sadias = listar(args.crops / "_classificar")
+    if not doentes and not sadias:
+        raise SystemExit(f"nada em {args.crops}. Rode o make_crops.py primeiro.")
+
+    print(f"\n== Triagem ==")
+    print(f"  doente        : {len(doentes)}")
+    print(f"  sadia (resto) : {len(sadias)}")
+    total = len(doentes) + len(sadias)
+    print(f"  prevalencia   : {100 * len(doentes) / total:.2f}%  "
+          f"(1 doente a cada {total // max(len(doentes), 1)} plantas)")
+
+    # Split por imagem de origem. As doentes mandam no split: sao a classe
+    # rara, e e nelas que a validacao precisa ter exemplo suficiente.
+    por_img_d: dict[str, list[Path]] = {}
+    for p in doentes:
+        por_img_d.setdefault(stem_origem(p.name), []).append(p)
+
+    imgs_com_doente = sorted(por_img_d)
+    rng = random.Random(args.seed)
+    rng.shuffle(imgs_com_doente)
+
+    val_imgs: set[str] = set()
+    alvo = max(1, round(len(doentes) * args.val_frac))
+    acumulado = 0
+    for nome_img in imgs_com_doente:
+        if acumulado >= alvo:
+            break
+        val_imgs.add(nome_img)
+        acumulado += len(por_img_d[nome_img])
+
+    def destino(p: Path, classe: str) -> tuple[str, str]:
+        split = "val" if stem_origem(p.name) in val_imgs else "train"
+        return split, classe
+
+    plano = [(p, *destino(p, "doente")) for p in doentes]
+    plano += [(p, *destino(p, "sadia")) for p in sadias]
+    contagem = Counter((s, c) for _, s, c in plano)
+
+    print(f"\n== Split por imagem de origem ==")
+    print(f"  imagens com doente : {len(imgs_com_doente)}")
+    print(f"  imagens na validacao: {len(val_imgs)}")
+    for split in ("train", "val"):
+        d, s = contagem[(split, "doente")], contagem[(split, "sadia")]
+        print(f"  {split:<5} doente {d:>5}   sadia {s:>6}")
+
+    # Veredito
+    d_tr, d_va = contagem[("train", "doente")], contagem[("val", "doente")]
+    print(f"\n== Da para treinar? ==")
+    if d_tr < MIN_DOENTE_TREINO:
+        print(f"{ERRO}so {d_tr} doentes no treino (minimo pratico ~{MIN_DOENTE_TREINO}).")
+        print(f"     Treinar agora produz um modelo que responde 'sadia' sempre")
+        print(f"     e acerta {100 * (1 - len(doentes) / total):.1f}% sem aprender nada.")
+        print(f"     Continue a triagem, ou converse com o cliente sobre um voo")
+        print(f"     dirigido as areas com planta doente.")
+    elif d_va < MIN_DOENTE_VAL:
+        print(f"{AVISO}{d_va} doentes na validacao e pouco para medir (minimo ~{MIN_DOENTE_VAL}).")
+        print(f"     Da para treinar, mas a metrica vai oscilar muito.")
+    else:
+        print(f"{OK}{d_tr} no treino e {d_va} na validacao. Da para tentar.")
+
+    razao = contagem[("train", "sadia")] / max(d_tr, 1)
+    print(f"\n{AVISO}desbalanceamento no treino: {razao:.0f} sadias por doente.")
+    print(f"     Use peso de classe ou subamostre as sadias — sem isso o modelo")
+    print(f"     aprende a ignorar a classe doente.")
+
+    if args.simular:
+        print(f"\n{AVISO}--simular: nada foi criado.")
+        return
+
+    for split in ("train", "val"):
+        for classe in ("sadia", "doente"):
+            (args.crops / split / classe).mkdir(parents=True, exist_ok=True)
+    for p, split, classe in plano:
+        shutil.copy2(p, args.crops / split / classe / p.name)
+
+    print(f"\n  dataset -> {args.crops / 'train'} e {args.crops / 'val'}")
+    print(f"  (copiado, nao movido: _classificar/ e doente/ continuam intactos)")
+    print(f"\nTreinar:  python src/train_cls.py --data {args.crops} --epochs 60")
+
+
+if __name__ == "__main__":
+    main()
