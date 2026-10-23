@@ -100,6 +100,19 @@ def main() -> None:
                          "incluir a margem do --pad arruina a metrica (ver docstring)")
     ap.add_argument("--sem-ranking", action="store_true",
                     help="nao prefixa o nome com a posicao no ranking")
+    ap.add_argument("--ranking-global", action="store_true",
+                    help="ordena pelo score absoluto em vez do percentil dentro "
+                         "de cada foto; so faz sentido se todas as fotos vierem "
+                         "do mesmo voo e da mesma hora")
+    ap.add_argument("--cls", type=Path, default=None,
+                    help="pesos de um classificador yolov8-cls treinado. Se dado, "
+                         "o score de suspeita vem da PROBABILIDADE de 'doente' do "
+                         "modelo, nao da cor. O classificador treinado supera o "
+                         "score de cor (AUC 0.934 vs 0.889), entao a triagem acha "
+                         "as doentes mais rapido. Costuma ir melhor com "
+                         "--ranking-global, por ser robusto a exposicao.")
+    ap.add_argument("--cls-device", default="0",
+                    help="device do classificador (--cls): '0' para GPU, 'cpu'")
     args = ap.parse_args()
 
     dest_tri = args.out / "_classificar"
@@ -146,13 +159,53 @@ def main() -> None:
     if not registros:
         raise SystemExit(f"nenhuma caixa utilizavel em {args.labels}")
 
-    # Ranking: maior score = mais suspeito = primeiro
-    registros.sort(key=lambda r: -r["score"])
+    # Se um classificador treinado foi passado, o score de suspeita deixa de ser
+    # cor e passa a ser a probabilidade de 'doente' do modelo — que mede sinal
+    # real, nao so amarelado (a planta que adoeceu sem perder cor, que a cor nao
+    # ve, o classificador pega). Medido na validacao: AUC 0.934 vs 0.889 da cor.
+    if args.cls is not None:
+        from ultralytics import YOLO  # import tardio: estagio 0 nao usa torch
+        print(f"ranqueando pelo classificador {args.cls.name} "
+              f"(device {args.cls_device})...")
+        modelo = YOLO(str(args.cls))
+        idx_doente = next(i for i, n in modelo.names.items() if n == "doente")
+        crops = [r["_crop"] for r in registros]
+        for i in range(0, len(crops), 64):
+            saida = modelo.predict(crops[i:i + 64], device=args.cls_device,
+                                   imgsz=args.size, verbose=False)
+            for j, res in enumerate(saida):
+                registros[i + j]["score"] = float(res.probs.data[idx_doente])
+
+    # O score bruto e um valor ABSOLUTO de cor, e fotos de voos diferentes tem
+    # exposicao e angulo de sol diferentes. Comparar o a* de uma foto de meio-dia
+    # com o de uma foto de fim de tarde mede a hora do voo, nao a planta.
+    # Converter para percentil DENTRO da propria foto resolve isso:
+    #
+    #     score absoluto        AUC 0.859   top 5%: 36/68
+    #     percentil na foto     AUC 0.889   top 5%: 39/68
+    #
+    # e 74% das doentes caem no top 10% da sua propria foto.
+    if not args.ranking_global:
+        por_foto: dict[str, list[dict]] = {}
+        for r in registros:
+            por_foto.setdefault(r["imagem"], []).append(r)
+        for itens in por_foto.values():
+            itens.sort(key=lambda r: r["score"])
+            ultimo = max(len(itens) - 1, 1)
+            for posicao, r in enumerate(itens):
+                r["percentil"] = posicao / ultimo
+    else:
+        for r in registros:
+            r["percentil"] = r["score"]
+
+    # Ranking: mais suspeito primeiro. Empate desempata pelo score absoluto.
+    registros.sort(key=lambda r: (-r["percentil"], -r["score"]))
     largura = len(str(len(registros)))
 
     n_doe = n_tri = 0
     linhas = [("recorte", "pasta", "imagem_origem", "indice_caixa",
-               "classe_label", "score", "x1", "y1", "x2", "y2")]
+               "classe_label", "score", "percentil_na_foto",
+               "x1", "y1", "x2", "y2")]
 
     for pos, r in enumerate(registros, 1):
         prefixo = "" if args.sem_ranking else f"{pos:0{largura}d}_"
@@ -168,6 +221,7 @@ def main() -> None:
             n_tri += 1
         linhas.append((nome, pasta.name, r["imagem"], r["indice"],
                        r["classe_label"], round(r["score"], 2),
+                       round(r["percentil"], 4),
                        r["x1"], r["y1"], r["x2"], r["y2"]))
 
     idx = args.out / "crops_index.csv"
