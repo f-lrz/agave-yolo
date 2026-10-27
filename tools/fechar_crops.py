@@ -110,7 +110,17 @@ def main() -> None:
                          "suspeita (negativos dificeis) em vez de sorteio")
     ap.add_argument("--simular", action="store_true",
                     help="mostra o relatorio sem criar as pastas de treino")
+    ap.add_argument("--out", type=Path, default=None,
+                    help="onde gravar train/ e val/ (padrao: a propria --crops). "
+                         "Use para nao sobrescrever um split existente.")
+    ap.add_argument("--sem-val", action="store_true",
+                    help="modo PRODUCAO: poe TODOS os dados no treino (sem holdout "
+                         "limpo). Cria um val pequeno, duplicado do treino, so para "
+                         "o YOLO validar e salvar best.pt — ele NAO mede "
+                         "generalizacao. As metricas reais vem da avaliacao feita "
+                         "antes, num holdout limpo.")
     args = ap.parse_args()
+    out = args.out or args.crops
 
     doentes = listar(args.crops / "doente")
     sadias = listar(args.crops / "_classificar")
@@ -145,6 +155,9 @@ def main() -> None:
         val_imgs.add(nome_img)
         acumulado += len(por_img_d[nome_img])
 
+    if args.sem_val:
+        val_imgs = set()   # modo producao: nada segurado para validacao
+
     def destino(p: Path, classe: str) -> tuple[str, str]:
         split = "val" if stem_origem(p.name) in val_imgs else "train"
         return split, classe
@@ -163,7 +176,12 @@ def main() -> None:
     # Veredito
     d_tr, d_va = contagem[("train", "doente")], contagem[("val", "doente")]
     print(f"\n== Da para treinar? ==")
-    if d_tr < MIN_DOENTE_TREINO:
+    if args.sem_val:
+        print(f"{OK}modo producao: {len(doentes)} doentes e {len(sadias)} sadias, "
+              f"tudo no treino.")
+        print(f"     O val e duplicado do treino, so para o YOLO rodar — nao mede")
+        print(f"     generalizacao. As metricas reais vem do holdout avaliado antes.")
+    elif d_tr < MIN_DOENTE_TREINO:
         print(f"{ERRO}so {d_tr} doentes no treino (minimo pratico ~{MIN_DOENTE_TREINO}).")
         print(f"     Treinar agora produz um modelo que responde 'sadia' sempre")
         print(f"     e acerta {100 * (1 - len(doentes) / total):.1f}% sem aprender nada.")
@@ -189,13 +207,22 @@ def main() -> None:
 
     for split in ("train", "val"):
         for classe in ("sadia", "doente"):
-            (args.crops / split / classe).mkdir(parents=True, exist_ok=True)
+            (out / split / classe).mkdir(parents=True, exist_ok=True)
     for p, split, classe in plano:
-        shutil.copy2(p, args.crops / split / classe / p.name)
+        shutil.copy2(p, out / split / classe / p.name)
 
-    print(f"\n  dataset -> {args.crops / 'train'} e {args.crops / 'val'}")
+    if args.sem_val:
+        # val descartavel: amostra duplicada do treino, so para o YOLO validar e
+        # salvar best.pt. Nao e holdout — mede o proprio treino.
+        rng_v = random.Random(args.seed + 1)
+        for classe, itens in (("doente", doentes), ("sadia", sadias)):
+            k = max(1, round(len(itens) * args.val_frac))
+            for p in rng_v.sample(itens, min(k, len(itens))):
+                shutil.copy2(p, out / "val" / classe / p.name)
+
+    print(f"\n  dataset -> {out / 'train'} e {out / 'val'}")
     print(f"  (copiado, nao movido: _classificar/ e doente/ continuam intactos)")
-    print(f"\nTreinar:  python src/train_cls.py --data {args.crops} --epochs 60")
+    print(f"\nTreinar:  python src/train_cls.py --data {out} --epochs 60")
 
 
 if __name__ == "__main__":

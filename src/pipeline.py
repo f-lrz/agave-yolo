@@ -3,10 +3,10 @@
 E este arquivo que o seu backend deve importar. Carrega os dois modelos uma vez
 e expoe `AgavePipeline.run(imagem)` devolvendo JSON + imagem anotada.
 
-    # linha de comando
-    python src/pipeline.py --det runs/detect/agave/weights/best.pt \
-        --cls runs/classify/saude/weights/best.pt \
-        --images data/raw/novas --out out/laudo
+    # linha de comando (device cpu: a GPU desta maquina tem defeito)
+    python src/pipeline.py --det best_v5.pt \
+        --cls runs/classify/agave_saude_v3_final/weights/best.pt \
+        --images data/raw/novas --out out/laudo --device cpu
 
     # no backend
     from pipeline import AgavePipeline
@@ -60,9 +60,13 @@ class AgavePipeline:
 
         plantas = [{"bbox": [round(float(v), 1) for v in d[1:5]],
                     "conf_deteccao": round(float(d[5]), 3),
-                    "saude": None, "conf_saude": None} for d in det]
+                    "saude": None, "conf_saude": None, "prob_doente": None} for d in det]
 
         if self.cls is not None and plantas:
+            # prob_doente (0..1) em TODA planta, nao so a classe vencedora: e o
+            # score que o backend ordena para a triagem do agronomo (as plantas
+            # no limbo, ex. sadia com 0.45, sao as que ele mais precisa revisar).
+            idx_doente = next(i for i, n in self.cls.names.items() if n == "doente")
             crops = self._crops(img, det)
             for i in range(0, len(crops), 32):
                 for j, r in enumerate(self.cls.predict(crops[i:i + 32], device=self.device,
@@ -70,6 +74,7 @@ class AgavePipeline:
                     k = int(r.probs.top1)
                     plantas[i + j]["saude"] = r.names[k]
                     plantas[i + j]["conf_saude"] = round(float(r.probs.top1conf), 3)
+                    plantas[i + j]["prob_doente"] = round(float(r.probs.data[idx_doente]), 3)
 
         doentes = sum(1 for p in plantas if p["saude"] == "doente")
         return {
