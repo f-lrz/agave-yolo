@@ -67,7 +67,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--pesos-det", type=Path, default=RAIZ / "best_v5.pt")
     ap.add_argument("--pesos-cls", type=Path,
-                    default=RAIZ / "runs" / "classify" / "agave_saude_v3_final" / "weights" / "best.pt")
+                    default=RAIZ / "runs" / "classify" / "agave_saude_v4_final" / "weights" / "best.pt")
     ap.add_argument("--entrada", type=Path, default=AQUI / "entrada")
     ap.add_argument("--saida", type=Path, default=AQUI / "saida")
     ap.add_argument("--limiar", type=float, default=0.5,

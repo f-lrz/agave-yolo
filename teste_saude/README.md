@@ -69,4 +69,4 @@ Fotos que ja tem saida sao **puladas** por padrao. Cada foto leva ~7-16s no CPU
 
 Usa o mesmo `src/pipeline.py` que o backend vai importar — o que voce ve aqui e
 exatamente o que o produto final produz. Pesos: detector `best_v5.pt`,
-classificador `runs/classify/agave_saude_v3_final/weights/best.pt`.
+classificador `runs/classify/agave_saude_v4_final/weights/best.pt`.
