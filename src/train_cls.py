@@ -5,6 +5,12 @@ Espera a estrutura criada por make_crops.py depois de voce separar as pastas:
     data/crops/val/sadia/*.jpg     data/crops/val/doente/*.jpg
 
     python src/train_cls.py --data data/crops --epochs 60
+
+PAUSAR E RETOMAR: Ctrl+C no terminal para o treino. O YOLO grava last.pt ao fim
+de cada epoca, entao perde-se no maximo a epoca em andamento. Para continuar de
+onde parou (mesmos argumentos do treino original, inclusive --device):
+
+    python src/train_cls.py --retomar agave_saude_v5_final
 """
 
 from __future__ import annotations
@@ -17,7 +23,7 @@ from ultralytics import YOLO
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data", required=True, help="pasta com train/ e val/")
+    ap.add_argument("--data", help="pasta com train/ e val/")
     ap.add_argument("--model", default="yolov8s-cls.pt")
     ap.add_argument("--epochs", type=int, default=60)
     ap.add_argument("--imgsz", type=int, default=224)
@@ -25,7 +31,21 @@ def main() -> None:
     ap.add_argument("--device", default="0")
     ap.add_argument("--amp", action="store_true", help="NAO use na GTX 16xx")
     ap.add_argument("--name", default="agave_saude")
+    ap.add_argument("--retomar", metavar="NOME",
+                    help="retoma um treino interrompido em runs/classify/NOME "
+                         "(usa o last.pt; ignora os outros argumentos)")
     args = ap.parse_args()
+
+    if args.retomar:
+        last = Path("runs/classify") / args.retomar / "weights" / "last.pt"
+        if not last.exists():
+            raise SystemExit(f"nao achei {last} — confira o nome e rode da raiz do projeto")
+        model = YOLO(str(last))
+        model.train(resume=True)
+        print(f"\nMelhor peso: {model.trainer.save_dir / 'weights' / 'best.pt'}")
+        return
+    if not args.data:
+        ap.error("--data e obrigatorio (ou use --retomar NOME)")
 
     root = Path(args.data)
     for split in ("train", "val"):

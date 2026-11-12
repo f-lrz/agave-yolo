@@ -1,9 +1,9 @@
 {
  "arquivo": "DJI_0931.JPG",
  "total_agaves": 138,
- "doentes": 7,
- "sadias": 131,
- "taxa_doenca": 0.0507,
+ "doentes": 1,
+ "sadias": 137,
+ "taxa_doenca": 0.0072,
  "plantas": [
   {
    "bbox": [
@@ -26,8 +26,8 @@
    ],
    "conf_deteccao": 0.842,
    "saude": "sadia",
-   "conf_saude": 0.945,
-   "prob_doente": 0.055
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -38,8 +38,8 @@
    ],
    "conf_deteccao": 0.827,
    "saude": "sadia",
-   "conf_saude": 0.999,
-   "prob_doente": 0.001
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -74,8 +74,8 @@
    ],
    "conf_deteccao": 0.817,
    "saude": "sadia",
-   "conf_saude": 0.988,
-   "prob_doente": 0.012
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -98,8 +98,8 @@
    ],
    "conf_deteccao": 0.815,
    "saude": "sadia",
-   "conf_saude": 0.995,
-   "prob_doente": 0.005
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -133,9 +133,9 @@
     1020.5
    ],
    "conf_deteccao": 0.805,
-   "saude": "doente",
-   "conf_saude": 0.537,
-   "prob_doente": 0.537
+   "saude": "sadia",
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -194,8 +194,8 @@
    ],
    "conf_deteccao": 0.796,
    "saude": "sadia",
-   "conf_saude": 0.991,
-   "prob_doente": 0.009
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -230,8 +230,8 @@
    ],
    "conf_deteccao": 0.782,
    "saude": "sadia",
-   "conf_saude": 0.996,
-   "prob_doente": 0.004
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -242,8 +242,8 @@
    ],
    "conf_deteccao": 0.776,
    "saude": "sadia",
-   "conf_saude": 0.997,
-   "prob_doente": 0.003
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -302,8 +302,8 @@
    ],
    "conf_deteccao": 0.762,
    "saude": "sadia",
-   "conf_saude": 0.994,
-   "prob_doente": 0.006
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -326,8 +326,8 @@
    ],
    "conf_deteccao": 0.76,
    "saude": "sadia",
-   "conf_saude": 0.999,
-   "prob_doente": 0.001
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -338,8 +338,8 @@
    ],
    "conf_deteccao": 0.76,
    "saude": "sadia",
-   "conf_saude": 0.991,
-   "prob_doente": 0.009
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -362,8 +362,8 @@
    ],
    "conf_deteccao": 0.755,
    "saude": "sadia",
-   "conf_saude": 0.999,
-   "prob_doente": 0.001
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -386,8 +386,8 @@
    ],
    "conf_deteccao": 0.752,
    "saude": "sadia",
-   "conf_saude": 0.997,
-   "prob_doente": 0.003
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -398,8 +398,8 @@
    ],
    "conf_deteccao": 0.75,
    "saude": "sadia",
-   "conf_saude": 0.999,
-   "prob_doente": 0.001
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -422,8 +422,8 @@
    ],
    "conf_deteccao": 0.744,
    "saude": "sadia",
-   "conf_saude": 0.983,
-   "prob_doente": 0.017
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -434,8 +434,8 @@
    ],
    "conf_deteccao": 0.743,
    "saude": "sadia",
-   "conf_saude": 0.901,
-   "prob_doente": 0.099
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -446,8 +446,8 @@
    ],
    "conf_deteccao": 0.738,
    "saude": "sadia",
-   "conf_saude": 0.995,
-   "prob_doente": 0.005
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -481,9 +481,9 @@
     1430.6
    ],
    "conf_deteccao": 0.728,
-   "saude": "doente",
-   "conf_saude": 0.917,
-   "prob_doente": 0.917
+   "saude": "sadia",
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -506,8 +506,8 @@
    ],
    "conf_deteccao": 0.724,
    "saude": "sadia",
-   "conf_saude": 0.967,
-   "prob_doente": 0.033
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -518,8 +518,8 @@
    ],
    "conf_deteccao": 0.718,
    "saude": "sadia",
-   "conf_saude": 0.999,
-   "prob_doente": 0.001
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -554,8 +554,8 @@
    ],
    "conf_deteccao": 0.715,
    "saude": "sadia",
-   "conf_saude": 0.993,
-   "prob_doente": 0.007
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -578,8 +578,8 @@
    ],
    "conf_deteccao": 0.71,
    "saude": "sadia",
-   "conf_saude": 0.833,
-   "prob_doente": 0.167
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -602,8 +602,8 @@
    ],
    "conf_deteccao": 0.706,
    "saude": "sadia",
-   "conf_saude": 0.981,
-   "prob_doente": 0.019
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -662,8 +662,8 @@
    ],
    "conf_deteccao": 0.688,
    "saude": "sadia",
-   "conf_saude": 0.994,
-   "prob_doente": 0.006
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -697,9 +697,9 @@
     594.8
    ],
    "conf_deteccao": 0.683,
-   "saude": "doente",
-   "conf_saude": 0.81,
-   "prob_doente": 0.81
+   "saude": "sadia",
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -710,8 +710,8 @@
    ],
    "conf_deteccao": 0.679,
    "saude": "sadia",
-   "conf_saude": 0.999,
-   "prob_doente": 0.001
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -746,8 +746,8 @@
    ],
    "conf_deteccao": 0.676,
    "saude": "sadia",
-   "conf_saude": 0.972,
-   "prob_doente": 0.028
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -758,8 +758,8 @@
    ],
    "conf_deteccao": 0.674,
    "saude": "sadia",
-   "conf_saude": 0.65,
-   "prob_doente": 0.35
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -818,8 +818,8 @@
    ],
    "conf_deteccao": 0.661,
    "saude": "sadia",
-   "conf_saude": 0.983,
-   "prob_doente": 0.017
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -854,8 +854,8 @@
    ],
    "conf_deteccao": 0.654,
    "saude": "sadia",
-   "conf_saude": 1.0,
-   "prob_doente": 0.0
+   "conf_saude": 0.999,
+   "prob_doente": 0.001
   },
   {
    "bbox": [
@@ -914,8 +914,8 @@
    ],
    "conf_deteccao": 0.641,
    "saude": "sadia",
-   "conf_saude": 0.999,
-   "prob_doente": 0.001
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -974,8 +974,8 @@
    ],
    "conf_deteccao": 0.619,
    "saude": "sadia",
-   "conf_saude": 0.993,
-   "prob_doente": 0.007
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -986,8 +986,8 @@
    ],
    "conf_deteccao": 0.617,
    "saude": "sadia",
-   "conf_saude": 1.0,
-   "prob_doente": 0.0
+   "conf_saude": 0.998,
+   "prob_doente": 0.002
   },
   {
    "bbox": [
@@ -1010,8 +1010,8 @@
    ],
    "conf_deteccao": 0.601,
    "saude": "sadia",
-   "conf_saude": 0.969,
-   "prob_doente": 0.031
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1022,8 +1022,8 @@
    ],
    "conf_deteccao": 0.591,
    "saude": "sadia",
-   "conf_saude": 0.991,
-   "prob_doente": 0.009
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1058,8 +1058,8 @@
    ],
    "conf_deteccao": 0.573,
    "saude": "sadia",
-   "conf_saude": 0.964,
-   "prob_doente": 0.036
+   "conf_saude": 0.991,
+   "prob_doente": 0.009
   },
   {
    "bbox": [
@@ -1070,8 +1070,8 @@
    ],
    "conf_deteccao": 0.571,
    "saude": "sadia",
-   "conf_saude": 0.999,
-   "prob_doente": 0.001
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1082,8 +1082,8 @@
    ],
    "conf_deteccao": 0.57,
    "saude": "sadia",
-   "conf_saude": 0.998,
-   "prob_doente": 0.002
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1094,8 +1094,8 @@
    ],
    "conf_deteccao": 0.567,
    "saude": "sadia",
-   "conf_saude": 0.942,
-   "prob_doente": 0.058
+   "conf_saude": 0.993,
+   "prob_doente": 0.007
   },
   {
    "bbox": [
@@ -1106,8 +1106,8 @@
    ],
    "conf_deteccao": 0.557,
    "saude": "sadia",
-   "conf_saude": 0.999,
-   "prob_doente": 0.001
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1142,8 +1142,8 @@
    ],
    "conf_deteccao": 0.539,
    "saude": "sadia",
-   "conf_saude": 0.993,
-   "prob_doente": 0.007
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1154,8 +1154,8 @@
    ],
    "conf_deteccao": 0.535,
    "saude": "sadia",
-   "conf_saude": 0.998,
-   "prob_doente": 0.002
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1166,8 +1166,8 @@
    ],
    "conf_deteccao": 0.535,
    "saude": "sadia",
-   "conf_saude": 0.998,
-   "prob_doente": 0.002
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1178,8 +1178,8 @@
    ],
    "conf_deteccao": 0.531,
    "saude": "sadia",
-   "conf_saude": 0.7,
-   "prob_doente": 0.3
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1190,8 +1190,8 @@
    ],
    "conf_deteccao": 0.531,
    "saude": "sadia",
-   "conf_saude": 0.596,
-   "prob_doente": 0.404
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1202,8 +1202,8 @@
    ],
    "conf_deteccao": 0.52,
    "saude": "sadia",
-   "conf_saude": 0.988,
-   "prob_doente": 0.012
+   "conf_saude": 0.999,
+   "prob_doente": 0.001
   },
   {
    "bbox": [
@@ -1238,8 +1238,8 @@
    ],
    "conf_deteccao": 0.509,
    "saude": "sadia",
-   "conf_saude": 0.991,
-   "prob_doente": 0.009
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1285,9 +1285,9 @@
     1831.7
    ],
    "conf_deteccao": 0.476,
-   "saude": "doente",
-   "conf_saude": 0.992,
-   "prob_doente": 0.992
+   "saude": "sadia",
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1298,8 +1298,8 @@
    ],
    "conf_deteccao": 0.475,
    "saude": "sadia",
-   "conf_saude": 0.997,
-   "prob_doente": 0.003
+   "conf_saude": 0.998,
+   "prob_doente": 0.002
   },
   {
    "bbox": [
@@ -1309,9 +1309,9 @@
     447.1
    ],
    "conf_deteccao": 0.468,
-   "saude": "doente",
-   "conf_saude": 0.664,
-   "prob_doente": 0.664
+   "saude": "sadia",
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1322,8 +1322,8 @@
    ],
    "conf_deteccao": 0.465,
    "saude": "sadia",
-   "conf_saude": 0.981,
-   "prob_doente": 0.019
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1334,8 +1334,8 @@
    ],
    "conf_deteccao": 0.457,
    "saude": "sadia",
-   "conf_saude": 0.989,
-   "prob_doente": 0.011
+   "conf_saude": 0.998,
+   "prob_doente": 0.002
   },
   {
    "bbox": [
@@ -1346,8 +1346,8 @@
    ],
    "conf_deteccao": 0.445,
    "saude": "sadia",
-   "conf_saude": 1.0,
-   "prob_doente": 0.0
+   "conf_saude": 0.999,
+   "prob_doente": 0.001
   },
   {
    "bbox": [
@@ -1382,8 +1382,8 @@
    ],
    "conf_deteccao": 0.427,
    "saude": "sadia",
-   "conf_saude": 1.0,
-   "prob_doente": 0.0
+   "conf_saude": 0.991,
+   "prob_doente": 0.009
   },
   {
    "bbox": [
@@ -1394,8 +1394,8 @@
    ],
    "conf_deteccao": 0.427,
    "saude": "sadia",
-   "conf_saude": 0.993,
-   "prob_doente": 0.007
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1406,8 +1406,8 @@
    ],
    "conf_deteccao": 0.424,
    "saude": "sadia",
-   "conf_saude": 0.991,
-   "prob_doente": 0.009
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1442,8 +1442,8 @@
    ],
    "conf_deteccao": 0.414,
    "saude": "sadia",
-   "conf_saude": 0.695,
-   "prob_doente": 0.305
+   "conf_saude": 0.999,
+   "prob_doente": 0.001
   },
   {
    "bbox": [
@@ -1454,8 +1454,8 @@
    ],
    "conf_deteccao": 0.412,
    "saude": "sadia",
-   "conf_saude": 0.981,
-   "prob_doente": 0.019
+   "conf_saude": 0.996,
+   "prob_doente": 0.004
   },
   {
    "bbox": [
@@ -1466,8 +1466,8 @@
    ],
    "conf_deteccao": 0.412,
    "saude": "sadia",
-   "conf_saude": 0.998,
-   "prob_doente": 0.002
+   "conf_saude": 0.999,
+   "prob_doente": 0.001
   },
   {
    "bbox": [
@@ -1478,8 +1478,8 @@
    ],
    "conf_deteccao": 0.4,
    "saude": "sadia",
-   "conf_saude": 0.998,
-   "prob_doente": 0.002
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1489,9 +1489,9 @@
     1023.9
    ],
    "conf_deteccao": 0.387,
-   "saude": "sadia",
-   "conf_saude": 0.999,
-   "prob_doente": 0.001
+   "saude": "doente",
+   "conf_saude": 0.537,
+   "prob_doente": 0.537
   },
   {
    "bbox": [
@@ -1502,8 +1502,8 @@
    ],
    "conf_deteccao": 0.38,
    "saude": "sadia",
-   "conf_saude": 0.999,
-   "prob_doente": 0.001
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1513,9 +1513,9 @@
     1487.3
    ],
    "conf_deteccao": 0.377,
-   "saude": "doente",
-   "conf_saude": 0.969,
-   "prob_doente": 0.969
+   "saude": "sadia",
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1538,8 +1538,8 @@
    ],
    "conf_deteccao": 0.373,
    "saude": "sadia",
-   "conf_saude": 0.996,
-   "prob_doente": 0.004
+   "conf_saude": 0.998,
+   "prob_doente": 0.002
   },
   {
    "bbox": [
@@ -1573,9 +1573,9 @@
     2007.9
    ],
    "conf_deteccao": 0.356,
-   "saude": "doente",
-   "conf_saude": 0.991,
-   "prob_doente": 0.991
+   "saude": "sadia",
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
@@ -1622,8 +1622,8 @@
    ],
    "conf_deteccao": 0.325,
    "saude": "sadia",
-   "conf_saude": 1.0,
-   "prob_doente": 0.0
+   "conf_saude": 0.999,
+   "prob_doente": 0.001
   },
   {
    "bbox": [
@@ -1634,8 +1634,8 @@
    ],
    "conf_deteccao": 0.325,
    "saude": "sadia",
-   "conf_saude": 0.975,
-   "prob_doente": 0.025
+   "conf_saude": 0.996,
+   "prob_doente": 0.004
   },
   {
    "bbox": [
@@ -1646,8 +1646,8 @@
    ],
    "conf_deteccao": 0.322,
    "saude": "sadia",
-   "conf_saude": 0.988,
-   "prob_doente": 0.012
+   "conf_saude": 1.0,
+   "prob_doente": 0.0
   },
   {
    "bbox": [
