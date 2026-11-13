@@ -5,7 +5,7 @@ e expoe `AgavePipeline.run(imagem)` devolvendo JSON + imagem anotada.
 
     # linha de comando (device cpu: a GPU desta maquina tem defeito)
     python src/pipeline.py --det best_v5.pt \
-        --cls runs/classify/agave_saude_v4_final/weights/best.pt \
+        --cls runs/classify/agave_saude_v5_final/weights/best.pt \
         --images data/raw/novas --out out/laudo --device cpu
 
     # no backend
