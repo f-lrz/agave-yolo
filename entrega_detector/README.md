@@ -1,5 +1,8 @@
 # Detector de agave — integracao no backend
 
+> **Substituido por [`entrega_backend/`](../entrega_backend/LEIA-ME.md)** (v2.0.0: deteccao + triagem de saude). Esta pasta fica como registro da entrega 1.2.0.
+
+
 Entrega parcial: **deteccao de agave em fotos de drone**. Uma caixa por planta,
 mais a contagem total.
 
