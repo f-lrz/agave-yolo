@@ -4,6 +4,7 @@
 - [Estágio 2 — estado do classificador](project-stage2-classifier.md) — classificador de saúde, meta e progresso
 - [Fotos novas para garimpar](reference-fotos-novas-voo2.md) — 38 fotos não rotuladas em Downloads
 - [Fotos voo3 (10/11/2026)](reference-fotos-voo3.md) — 45 fotos: 27 treino / 14 teste / 4 descartadas, em data/novas_voo3
+- [Demo da versão de detecção](reference-demo-deteccao.md) — back+front+pesos da época, em DocumentsIdentify2.0_demo_deteccao
 - [GPU com defeito](project-gpu-com-defeito.md) — placa desliga sozinha, preferir CPU
 - [Quem é o usuário](user-filipe.md) — idioma e perfil
 - [Como trabalhar neste projeto](feedback-conducao-projeto.md) — o usuário quer que eu conduza e melhore scripts
