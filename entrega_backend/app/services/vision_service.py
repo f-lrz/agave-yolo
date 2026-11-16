@@ -18,9 +18,9 @@ Variaveis de ambiente (todas opcionais):
   AGAVE_DEVICE             'cpu' ou '0' para a primeira GPU
   AGAVE_CONF               limiar do detector (0.30, calibrado para contagem)
   AGAVE_JPEG               qualidade do JPEG devolvido (85)
-  AGAVE_COR                cor das caixas sadias (ciano)
+  AGAVE_COR                cor das caixas sadias, se forem desenhadas (ciano)
   AGAVE_COR_DOENTE         cor das caixas doentes (vermelho)
-  AGAVE_MOSTRAR_SADIAS=0   desenha so as doentes
+  AGAVE_MOSTRAR_SADIAS=1   desenha tambem as sadias (padrao: so as suspeitas)
 """
 
 from __future__ import annotations
@@ -49,7 +49,9 @@ QUALIDADE_JPEG = int(os.getenv("AGAVE_JPEG", "85"))
 # (confunde com a planta). O vermelho fica reservado para as doentes.
 NOME_COR = os.getenv("AGAVE_COR", "ciano")
 NOME_COR_DOENTE = os.getenv("AGAVE_COR_DOENTE", "vermelho")
-MOSTRAR_SADIAS = os.getenv("AGAVE_MOSTRAR_SADIAS", "1") == "1"
+# Padrao: a imagem marca SO as plantas suspeitas de doenca. As sadias ficam
+# sem caixa, para a doenca saltar aos olhos (a contagem total segue no JSON).
+MOSTRAR_SADIAS = os.getenv("AGAVE_MOSTRAR_SADIAS", "0") == "1"
 
 _detector = None
 _classificador = None
@@ -107,7 +109,9 @@ def _analisar_sincrono(file_bytes: bytes) -> dict[str, Any]:
     anotada = desenhar_saude(img, r["plantas"], limiar=LIMIAR_DOENTE,
                              cor_sadia=CORES.get(NOME_COR, CIANO),
                              cor_doente=CORES.get(NOME_COR_DOENTE, VERMELHO),
-                             mostrar_sadias=MOSTRAR_SADIAS)
+                             # sem a etapa de saude nao ha 'doente': desenha todas,
+                             # senao a imagem sairia sem nenhuma caixa
+                             mostrar_sadias=MOSTRAR_SADIAS or not r["saude_ativa"])
     return {
         "image_base64": _codificar(anotada),
         "total_agaves": r["total"],
@@ -160,6 +164,8 @@ async def _process_image_mock(file_bytes: bytes) -> dict[str, Any]:
          "y2": altura // 2 + s, "conf": 0.9, "prob_doente": 0.04, "saude": "sadia"},
     ]
     for p in plantas:
+        if p["saude"] != "doente" and not MOSTRAR_SADIAS:
+            continue
         cor = (0, 0, 255) if p["saude"] == "doente" else (255, 255, 0)
         cv2.rectangle(img, (p["x1"], p["y1"]), (p["x2"], p["y2"]), cor, 3)
     cv2.putText(img, "MOCK - sem modelo carregado", (20, 60),

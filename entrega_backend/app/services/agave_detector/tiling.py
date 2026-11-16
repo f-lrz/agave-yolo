@@ -1,7 +1,7 @@
-"""Recorte da imagem em tiles — copia auto-contida do pipeline de treino.
+"""Recorte da imagem em tiles — mesma grade usada no treino do detector.
 
-NAO altere `tile` nem `overlap` sem reler o README: eles fazem parte do
-contrato do modelo, nao sao parametros de gosto.
+NAO altere `tile` nem `overlap` (definidos em detector.py): fazem parte do
+contrato do modelo (ver models/MODELO.md), nao sao parametros de gosto.
 """
 
 from __future__ import annotations
@@ -28,8 +28,9 @@ def tile_grid(w: int, h: int, tile: int, overlap: float) -> Iterator[tuple[int, 
 
     A sobreposicao existe para que uma planta cortada pela borda de um tile
     apareca inteira no tile vizinho. Com tile=1024 e overlap=0.4 a faixa de
-    sobreposicao e de 410px, maior que a maior planta observada no dataset
-    (p95 = 530px em algumas imagens, 410px cobre a mediana com folga).
+    sobreposicao e de 410px, folgada para a planta tipica do treino (~110 a
+    ~320px). Planta maior que isso (foto tirada baixo demais) pode nao caber
+    inteira em nenhum tile — e por isso que o detector avisa nesse caso.
     """
     stride = max(1, int(round(tile * (1.0 - overlap))))
     for y0 in _starts(h, tile, stride):

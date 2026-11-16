@@ -5,18 +5,21 @@ router = APIRouter()
 
 @router.post("/analyze")
 async def analyze_image(file: UploadFile = File(...)):
-    # Validação básica de tipo
+    """Recebe UMA foto de drone e devolve a imagem marcada + o laudo em JSON.
+
+    Contrato completo (campos, tempos, avisos) em API.md. Os erros 400 trazem
+    mensagens em português, prontas para o front exibir.
+    """
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail=f"O arquivo {file.filename} não é uma imagem válida")
 
     try:
-        # Ler os bytes da imagem enviada
         contents = await file.read()
         if not contents:
             raise HTTPException(status_code=400, detail=f"O arquivo {file.filename} está vazio")
 
-        # Detecção de agave + TRIAGEM de saúde (não é diagnóstico — ver
-        # models/MODELO_SAUDE.md e API.md)
+        # Detecção + triagem de saúde. Leva ~12s e roda fora do event loop
+        # (ver process_image), então o servidor segue respondendo enquanto isso.
         resultado = await process_image(contents)
 
         return {

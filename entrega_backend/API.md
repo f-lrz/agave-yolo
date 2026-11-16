@@ -76,7 +76,7 @@ Exemplo (a lista `plantas` foi encurtada; na resposta real vêm todas):
 |---|---|---|
 | `filename` | string | o nome que veio no upload |
 | `content_type` | string | o MIME que veio no upload |
-| `image_data` | string | **data-URI pronto para `<img src>`**: a foto com as caixas desenhadas (sadias em ciano fino, suspeitas em vermelho grosso com o `prob_doente` escrito) |
+| `image_data` | string | **data-URI pronto para `<img src>`**: a foto com **só as plantas suspeitas** marcadas (caixa vermelha com o `prob_doente` escrito). As sadias não são desenhadas, mas estão todas em `plantas` (para desenhá-las também: `AGAVE_MOSTRAR_SADIAS=1` no servidor) |
 | `total_agaves` | int | quantas plantas foram detectadas |
 | `largura`, `altura` | int | dimensões da imagem enviada, em pixels |
 | `conf` | float | limiar do detector (ver "Sobre o `conf`") |

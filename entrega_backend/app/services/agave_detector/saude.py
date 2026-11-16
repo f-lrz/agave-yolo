@@ -146,10 +146,11 @@ def desenhar_saude(imagem: Imagem, plantas: list[dict[str, Any]],
                    cor_sadia: tuple[int, int, int] = CIANO,
                    cor_doente: tuple[int, int, int] = VERMELHO,
                    mostrar_sadias: bool = True) -> np.ndarray:
-    """Desenha as plantas: sadias finas, doentes grossas com o prob_doente escrito.
+    """Desenha as plantas: suspeitas em caixa grossa com o prob_doente escrito;
+    sadias (se `mostrar_sadias`) em caixa fina.
 
-    **Nao carrega modelo.** Como `desenhar_caixas()`, serve para a rota de
-    download: guarde as `plantas` do analisar() e redesenhe a partir delas.
+    Nao carrega modelo: redesenha a partir das `plantas` que o analisar()
+    devolveu, sem rodar a inferencia de novo.
 
     O `limiar` aqui so decide o que fica vermelho; pode ser diferente do usado
     no analisar() (ex.: a tela deixa o agronomo baixar para 0.3 e ver mais).

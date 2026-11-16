@@ -33,15 +33,16 @@ app = FastAPI(
 setup_cors(app)
 app.include_router(api_router, prefix="/api")
 
-# Serve a pasta static/
+# Página de teste servida pelo próprio backend (http://localhost:8000). O
+# frontend oficial é o repositório identify2.0-frontend; esta página fica para
+# testar a API sem ele.
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Rota raiz serve a página de upload/loading/resultado
 @app.get("/")
 async def root():
     return FileResponse("static/index.html")
 
-# Health check - /health
+# Usado para checar se o servidor está no ar (ex.: healthcheck do container).
 @app.get("/health")
 async def health():
     return {"status": "online", "message": "Backend do IDENTIFY 2.0 ativo."}

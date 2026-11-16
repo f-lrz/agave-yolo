@@ -1,8 +1,9 @@
 """Detector de agave em imagem de drone.
 
 O QUE ELE FAZ: recebe uma foto aerea e devolve uma caixa por planta de agave.
-O QUE ELE NAO FAZ: nao diz se a planta esta doente ou sadia. O modelo tem UMA
-classe ('agave'). Qualquer tela que rotule a saida como "doente" esta errada.
+O QUE ELE NAO FAZ: nao diz se a planta esta doente. O modelo tem UMA classe
+('agave'); a suspeita de doenca vem do classificador de saude (saude.py), que
+roda depois, sobre as caixas que este detector encontra.
 
 Por que existe esta classe em vez de chamar o YOLO direto:
 
@@ -16,7 +17,7 @@ remontados com NMS global. E isso que esta classe faz.
 
     from agave_detector import DetectorAgave
 
-    det = DetectorAgave('modelo/best.pt')   # carregue UMA vez, no startup
+    det = DetectorAgave('models/best.pt')   # carregue UMA vez, no startup
     r = det.detectar('foto.jpg')
     print(r['total'], r['caixas'][0])
 """
@@ -36,7 +37,10 @@ from ultralytics import YOLO
 from .tiling import tile_grid
 
 # Contrato do modelo. Estes valores foram medidos, nao escolhidos por gosto —
-# ver README.md, secao "Parametros". Mudar qualquer um degrada o resultado.
+# ver models/MODELO.md. Mudar qualquer um degrada o resultado sem dar erro:
+# o modelo foi treinado em tiles de 1024px, entao ele so "enxerga" bem nessa
+# escala, e o overlap de 40% e o que garante que cada planta caia inteira em
+# pelo menos um tile.
 TILE = 1024
 OVERLAP = 0.4
 IMGSZ = 1024
@@ -97,12 +101,11 @@ def desenhar_caixas(imagem: Imagem, caixas: list[dict[str, Any]],
                     cor: tuple[int, int, int] = PRETO) -> np.ndarray:
     """Desenha as caixas sobre a imagem. Devolve BGR, pronto para cv2.imencode.
 
-    **Nao carrega o modelo.** E esta a funcao da rota de download: guarde as
-    caixas que o /detectar devolveu e redesenhe a partir delas, em vez de rodar
-    a deteccao outra vez (que custaria os ~11s de novo).
+    Nao carrega o modelo: para redesenhar um resultado ja calculado, passe as
+    caixas guardadas em vez de rodar a deteccao de novo (~11s).
 
-    Vai um contorno claro por tras de cada caixa para ela nao sumir sobre
-    sombra ou solo escuro, onde o preto puro desapareceria.
+    Vai um contorno de cor contrastante por tras de cada caixa para ela nao
+    sumir sobre sombra ou solo escuro.
     """
     img = ler_imagem(imagem)
     out = img.copy()
@@ -137,7 +140,6 @@ class DetectorAgave:
 
     _ler = staticmethod(ler_imagem)
 
-    # ---------------------------------------------------------------- inferencia
     def _detectar_array(self, img: np.ndarray, conf: float) -> np.ndarray:
         """-> array (N, 5): [x1, y1, x2, y2, conf] nas coordenadas da imagem."""
         h, w = img.shape[:2]
@@ -186,7 +188,6 @@ class DetectorAgave:
         det = det[idx]
         return det[np.argsort(-det[:, 4])]
 
-    # -------------------------------------------------------------------- publica
     def detectar(self, imagem: Imagem, conf: float | None = None) -> dict[str, Any]:
         """Detecta agaves e devolve um dicionario pronto para virar JSON.
 
@@ -217,6 +218,9 @@ class DetectorAgave:
         with self._trava:                 # serializa: ver comentario no __init__
             det = self._detectar_array(img, c)
 
+        # Altura de voo: usa o tamanho TIPICO das caixas (mediana, robusta a
+        # algumas caixas grandes) para detectar foto tirada baixo demais. Com
+        # menos de 5 caixas a mediana nao diz nada, entao nao avisa.
         if len(det) >= 5:
             lado = float(np.median(np.maximum(det[:, 2] - det[:, 0],
                                               det[:, 3] - det[:, 1])))
@@ -244,11 +248,7 @@ class DetectorAgave:
 
     def desenhar(self, imagem: Imagem, resultado: dict[str, Any] | None = None,
                  cor: tuple[int, int, int] = PRETO) -> np.ndarray:
-        """Atalho: detecta (se preciso) e desenha.
-
-        Para a rota de DOWNLOAD, nao use este metodo — use a funcao
-        `desenhar_caixas()`, que nao precisa do modelo carregado.
-        """
+        """Atalho: detecta (se `resultado` nao vier) e desenha as caixas."""
         img = self._ler(imagem)
         if resultado is None:
             resultado = self.detectar(img)

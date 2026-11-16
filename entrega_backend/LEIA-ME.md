@@ -13,8 +13,8 @@ suspeita para a menos**, que e a fila de revisao do agronomo.
 **Compativel com o front atual.** Os campos que ja existiam continuam iguais
 (`image_data`, `total_agaves`, `avisos`...). Os campos de saude sao novos, e o
 front pode adota-los quando quiser. A unica mudanca visivel sem mexer no front e
-a imagem: sadias em **ciano fino**, suspeitas em **vermelho grosso** com o
-`prob_doente` escrito.
+a imagem: agora ela marca **só as plantas suspeitas**, em vermelho, com o
+`prob_doente` escrito. As sadias não são desenhadas, mas continuam no JSON.
 
 ## Arquivos
 
@@ -84,9 +84,9 @@ Todas opcionais; os padroes ja sao os recomendados.
 | `AGAVE_PESOS_SAUDE` | `models/classificador_saude.pt` | caminho dos pesos de saude |
 | `AGAVE_SAUDE` | `1` | `0` desliga a etapa 2 (volta a ser so deteccao; campos de saude vem `null`) |
 | `AGAVE_LIMIAR_DOENTE` | `0.5` | corte para `saude`/`doentes`. `0.3` acha mais doentes, com mais alarme falso |
-| `AGAVE_COR` | `ciano` | cor das caixas sadias (**antes era `vermelho`**; o vermelho ficou para as doentes) |
+| `AGAVE_COR` | `ciano` | cor das caixas sadias, quando desenhadas (**antes era `vermelho`**; o vermelho ficou para as doentes) |
 | `AGAVE_COR_DOENTE` | `vermelho` | cor das caixas suspeitas |
-| `AGAVE_MOSTRAR_SADIAS` | `1` | `0` desenha so as suspeitas |
+| `AGAVE_MOSTRAR_SADIAS` | `0` | `1` desenha tambem as sadias (com a saude desligada, todas sao desenhadas sempre) |
 
 `AGAVE_MOCK=1` continua funcionando, agora com uma planta sadia e uma doente
 simuladas, no mesmo formato da resposta real.
